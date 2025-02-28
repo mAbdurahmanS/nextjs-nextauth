@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
 import { Course } from "@/types/course";
 import { useSession } from "next-auth/react";
+import { Session } from "next-auth";
 
 const courseSchema = z.object({
     user_id: z.string().uuid(),
@@ -25,9 +26,12 @@ interface FormProps {
     onClose?: () => void;
 }
 
+type ExtendedUser = Session["user"] & { token?: string };
+
 const FormCourse = ({ course, onSuccess, onClose }: FormProps) => {
     const { data: session } = useSession();
-    const token = session?.user?.token || null;
+    const user = session?.user as ExtendedUser;
+    const token = user?.token || null;
 
     const [message, setMessage] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -47,14 +51,14 @@ const FormCourse = ({ course, onSuccess, onClose }: FormProps) => {
     });
 
     useEffect(() => {
-        if (course) {
+        if (course && session?.user?.id) {
             reset({
                 user_id: session.user.id,
                 title: course.title,
                 description: course.description,
             });
         }
-    }, [course, reset]);
+    }, [course, reset, session?.user?.id]);
 
     const onSubmit = async (data: FormData) => {
         setLoading(true);
@@ -86,7 +90,7 @@ const FormCourse = ({ course, onSuccess, onClose }: FormProps) => {
                 setMessage(result.message || "Failed to save course.");
             }
         } catch (error) {
-            setMessage("Something went wrong!");
+            setMessage(`Error: Something went wrong! ${error}`);
         } finally {
             setLoading(false);
         }

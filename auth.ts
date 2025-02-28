@@ -1,5 +1,22 @@
-import NextAuth from "next-auth";
+import NextAuth, { DefaultSession } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+      token?: string;
+    } & DefaultSession["user"];
+  }
+
+  interface User {
+    id?: string;
+    token?: string;
+  }
+}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -37,7 +54,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
 
           const data = await response.json();
-          if (data?.data?.token) {
+          if (typeof data?.data?.token === "string") {
             token.laravelToken = data?.data?.token;
             token.userId = data?.data?.user?.id;
           } else {
@@ -51,9 +68,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
 
     async session({ session, token }) {
-      if (token?.laravelToken) {
-        session.user.token = token.laravelToken;
-        session.user.id = token.userId;
+      if (
+        typeof token.laravelToken === "string" &&
+        typeof token.userId === "string"
+      ) {
+        session.user = {
+          ...session.user,
+          token: token.laravelToken,
+          id: token.userId,
+        };
       } else {
         console.error("No token found in JWT token.");
       }

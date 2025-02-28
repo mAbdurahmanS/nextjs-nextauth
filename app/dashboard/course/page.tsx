@@ -38,11 +38,15 @@ import {
 } from "@/components/ui/dropdown-menu"
 import FormLesson from './(action)/form-lesson';
 import { useSession } from 'next-auth/react';
+import { Session } from "next-auth";
+
+type ExtendedUser = Session["user"] & { token?: string };
 
 
 export default function CoursePage() {
     const { data: session } = useSession();
-    const token = session?.user?.token || null;
+    const user = session?.user as ExtendedUser;
+    const token = user?.token || null;
 
     const { courses, isLoading, error, mutate } = useFetchCourses();
 
@@ -81,7 +85,7 @@ export default function CoursePage() {
                 showAlert("error", "Failed to delete course.");
             }
         } catch (error) {
-            showAlert("error", "Something went wrong!");
+            showAlert("error", `Something went wrong! ${error}`);
         }
     };
 
@@ -103,7 +107,7 @@ export default function CoursePage() {
                 showAlert("error", "Failed to delete lesson.");
             }
         } catch (error) {
-            showAlert("error", "Something went wrong!");
+            showAlert("error", `Something went wrong! ${error}`);
         }
     };
 
@@ -128,73 +132,6 @@ export default function CoursePage() {
 
             {isLoading && <p>Loading courses...</p>}
             {error && <p className="text-red-500">Failed to load courses.</p>}
-
-            {/* {!isLoading && !error && (
-                <Table>
-                    <TableCaption>A list of your recent courses.</TableCaption>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="w-[50px] text-center">No.</TableHead>
-                            <TableHead>Title</TableHead>
-                            <TableHead>Description</TableHead>
-                            <TableHead className='w-[100px]'></TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {courses.length > 0 ? (
-                            courses.map((course: Course, index: number) => (
-                                <TableRow key={course.id}>
-                                    <TableCell className="text-center">{index + 1}.</TableCell>
-                                    <TableCell className="font-medium">{course.title}</TableCell>
-                                    <TableCell>{course.description}</TableCell>
-                                    <TableCell className='flex items-center justify-end gap-2'>
-                                        <DialogForm
-                                            trigger={
-                                                <Button onClick={() => setIsOpenCourseById(course.id)}>Edit</Button>
-                                            }
-                                            title="Edit Course"
-                                            description="Modify the course details."
-                                            isOpen={isOpenCourseById === course.id}
-                                            onOpenChange={(isOpen) => setIsOpenCourseById(isOpen ? course.id : null)}
-                                        >
-                                            <Form
-                                                course={course}
-                                                onSuccess={() => {
-                                                    // setIsOpen(false)
-                                                    setIsOpenCourseById(null);
-                                                    mutate()
-                                                    showAlert("success", "Course updated successfully!")
-                                                }} />
-                                        </DialogForm>
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <Button>Delete</Button>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                        This action cannot be undone. This will permanently delete your
-                                                        data.
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={() => handleDelete(course.id)}>Continue</AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={4} className="text-center">No courses found.</TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            )} */}
 
             <div className="grid grid-cols-3 gap-6">
 

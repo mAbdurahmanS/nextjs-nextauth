@@ -11,6 +11,7 @@ import { useState, useEffect } from "react";
 import { Lesson } from "@/types/lesson";
 import { useFetchLessons } from "@/hooks/useFetchLessons";
 import { useSession } from "next-auth/react";
+import { Session } from "next-auth";
 
 const lessonSchema = z.object({
     course_id: z.string().uuid(),
@@ -19,6 +20,8 @@ const lessonSchema = z.object({
 });
 
 type FormData = z.infer<typeof lessonSchema>;
+type ExtendedUser = Session["user"] & { token?: string };
+
 
 interface FormProps {
     courseId: string;  // ⬅️ Buat wajib agar tidak perlu select
@@ -29,7 +32,8 @@ interface FormProps {
 
 const FormLesson = ({ courseId, lessonId, onSuccess, onClose }: FormProps) => {
     const { data: session } = useSession();
-    const token = session?.user?.token || null;
+    const user = session?.user as ExtendedUser;
+    const token = user?.token || null;
 
     const { lesson } = useFetchLessons(lessonId) as { lesson: Lesson | null };
 
@@ -54,7 +58,7 @@ const FormLesson = ({ courseId, lessonId, onSuccess, onClose }: FormProps) => {
     useEffect(() => {
         if (lesson) {
             setValue("title", lesson.title);
-            setValue("content", lesson.content);
+            setValue("content", lesson.content ?? "");
         }
     }, [lesson, setValue]);
 
@@ -97,7 +101,7 @@ const FormLesson = ({ courseId, lessonId, onSuccess, onClose }: FormProps) => {
                 setMessage(result.message || "Failed to save lesson.");
             }
         } catch (error) {
-            setMessage("Something went wrong!");
+            setMessage(`Error: Something went wrong! ${error}`);
         } finally {
             setLoading(false);
         }
