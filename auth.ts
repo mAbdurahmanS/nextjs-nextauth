@@ -38,7 +38,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           const data = await response.json();
           if (data?.data?.token) {
-            token.laravelToken = data?.data?.token; // Token diteruskan ke JWT
+            token.laravelToken = data?.data?.token;
+            token.userId = data?.data?.user?.id;
           } else {
             console.error("No token returned from Laravel.");
           }
@@ -51,7 +52,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
     async session({ session, token }) {
       if (token?.laravelToken) {
-        session.user.token = token.laravelToken; // Menyimpan token ke session
+        session.user.token = token.laravelToken;
+        session.user.id = token.userId;
       } else {
         console.error("No token found in JWT token.");
       }

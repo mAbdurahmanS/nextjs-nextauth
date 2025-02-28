@@ -40,7 +40,7 @@ const FormCourse = ({ course, onSuccess, onClose }: FormProps) => {
     } = useForm<FormData>({
         resolver: zodResolver(courseSchema),
         defaultValues: {
-            user_id: course?.user?.id || "01954287-8711-7399-b6bf-818723398e48",
+            user_id: session?.user?.id,
             title: course?.title || "",
             description: course?.description || "",
         },
@@ -49,7 +49,7 @@ const FormCourse = ({ course, onSuccess, onClose }: FormProps) => {
     useEffect(() => {
         if (course) {
             reset({
-                user_id: course.user.id,
+                user_id: session.user.id,
                 title: course.title,
                 description: course.description,
             });
@@ -94,7 +94,6 @@ const FormCourse = ({ course, onSuccess, onClose }: FormProps) => {
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <input type="hidden" {...register("user_id")} />
 
             <div>
                 <Label htmlFor="title">Course Title</Label>
